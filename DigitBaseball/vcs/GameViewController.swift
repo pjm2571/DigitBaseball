@@ -12,11 +12,13 @@ class GameViewController: UIViewController, UITableViewDelegate, UITableViewData
     @IBOutlet weak var resultList: UITableView!
     @IBOutlet weak var resultLabel: UILabel!
 
+    @IBOutlet weak var mostLabel: UILabel!
     @IBOutlet weak var enterButton: UIButton!
     private var targetNumber: [Int] = []
     private var attempts: [(input: String, result: String)] = []
 
     private var attemptCount: Int = 0
+    private var bestAttemptRecord: Int? = nil
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -31,8 +33,9 @@ class GameViewController: UIViewController, UITableViewDelegate, UITableViewData
         // 버튼 액션 설정
         enterButton.addTarget(self, action: #selector(enterButtonTapped), for: .touchUpInside)
 
-        // 시도 회수 초기화
+        // 시도 회수 초기화 및 최고 기록 초기화
         updateAttemptLabel()
+        mostLabel.text = "이곳에 최고 기록이 표시됩니다."
     }
 
     private func generateTargetNumber() {
@@ -99,6 +102,12 @@ class GameViewController: UIViewController, UITableViewDelegate, UITableViewData
         updateLabels(for: input)
 
         let result = calculateResult(for: input)
+
+        if result == "4S 0B" {
+            handleSuccess()
+            return
+        }
+
         resultLabel.text = result
 
         // 결과를 리스트에 추가
@@ -113,6 +122,28 @@ class GameViewController: UIViewController, UITableViewDelegate, UITableViewData
         enterField.text = ""
     }
 
+    private func handleSuccess() {
+        attemptCount += 1 // 4S를 포함한 횟수를 반영
+        if let bestRecord = bestAttemptRecord {
+            if attemptCount < bestRecord {
+                showAlert(message: "축하합니다! 최고 기록을 경신하였습니다!")
+                bestAttemptRecord = attemptCount
+                mostLabel.text = "최고 기록: \(attemptCount)회"
+            } else {
+                showAlert(message: "축하합니다! 정답을 맞추셨습니다!")
+            }
+        } else {
+            showAlert(message: "축하합니다! 정답을 맞추셨습니다!")
+            bestAttemptRecord = attemptCount
+            mostLabel.text = "최고 기록: \(attemptCount)회"
+        }
+
+        // 텍스트 필드 초기화
+        enterField.text = ""
+
+        resetGame()
+    }
+
     private func updateLabels(for input: String) {
         let inputDigits = input.map { String($0) }
         firstLabel.text = inputDigits.indices.contains(0) ? inputDigits[0] : "?"
@@ -122,12 +153,26 @@ class GameViewController: UIViewController, UITableViewDelegate, UITableViewData
     }
 
     private func updateAttemptLabel() {
-        attemptLabel.text = "시도 회수: \(attemptCount)"
+        attemptLabel.text = "시도 횟수: \(attemptCount)"
     }
 
     private func hasDuplicateDigits(_ input: String) -> Bool {
         let inputDigits = Array(input)
         return Set(inputDigits).count != inputDigits.count
+    }
+
+    private func resetGame() {
+        targetNumber.removeAll()
+        attempts.removeAll()
+        attemptCount = 0
+        updateAttemptLabel()
+        resultLabel.text = ""
+        resultList.reloadData()
+        generateTargetNumber()
+        firstLabel.text = "?"
+        secondLabel.text = "?"
+        thirdLabel.text = "?"
+        forthLabel.text = "?"
     }
 
     private func showAlert(message: String) {
