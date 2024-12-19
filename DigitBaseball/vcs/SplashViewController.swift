@@ -13,7 +13,7 @@ class SplashViewController: UIViewController {
         super.viewDidLoad()
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            self.showScreen(withIdentifier: "mainViewController")
+            self.showScreen(withIdentifier: "gameViewController")
         }
     }
     
